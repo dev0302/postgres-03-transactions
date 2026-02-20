@@ -59,10 +59,11 @@ app.post("/signup", async (req,res) => {
 
 });
 
-// transactions
-// A transaction is a way to run multiple database operations as one single unit of work, meaning, for example, when creating a user and their address together, a transaction ensures that if inserting the address fails, the user insert is rolled back too, keeping the database clean-this is done using `BEGIN` to start, `COMMIT` to save everything if successful, and `ROLLBACK` to undo all changes if any error occurs, making transactions essential for data integrity, especially when tables are related.
+
 
 app.post("/transaction", async(req,res) => {
+
+    // transactions: a transaction is a way to run multiple database operations as one single unit of work, meaning, for example, when creating a user and their address together, a transaction ensures that if inserting the address fails, the user insert is rolled back too, keeping the database clean-this is done using `BEGIN` to start, `COMMIT` to save everything if successful, and `ROLLBACK` to undo all changes if any error occurs, making transactions essential for data integrity, especially when tables are related.
 
     const username = req.body.username;
     const password = req.body.password;
@@ -107,6 +108,31 @@ app.post("/transaction", async(req,res) => {
             message : "error while signing up"
         });
     }
+})
+
+app.get("/metadata", async(req,res) => {
+    // req query se id ayega, req.query = data after ? (from url)
+    // /route?key=value
+    //         ↑
+    //         query
+
+    const id = req.query.id;
+    console.log("id founddd" + id);
+    
+
+    const query1 = `SELECT username,email,id from users WHERE id=$1`;
+    const response1 = await pgClient.query(query1, [id]);
+
+    const query2 = `SELECT * from addresses WHERE user_id=$1`;
+    const response2 = await pgClient.query(query2, [id]);
+
+    res.json({
+        user: response1.rows[0],
+        addresses: response2.rows
+    })
+
+    // now since the id will be get fetched from query, i.e. url, hence no need of postman here, just do this : localhost:3000/metadata?id=7
+
 })
 
 app.listen(3000, () => {
